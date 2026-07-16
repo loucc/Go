@@ -1,12 +1,12 @@
 package middleware
 
 import (
-	"fmt"
 	"ginDemo/config"
 	"github.com/gin-gonic/gin"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
+	"log"
 	"os"
 	"path"
 	"time"
@@ -22,9 +22,9 @@ func LoggerToFile() gin.HandlerFunc {
 	fileName := path.Join(logFilePath, logFileName)
 
 	// 写入文件
-	src, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	src, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
-		fmt.Println("err", err)
+		log.Fatalf("Failed to open log file: %v", err)
 	}
 
 	// 实例化

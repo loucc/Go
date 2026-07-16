@@ -1,8 +1,9 @@
 package main
 
 import (
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"hello/go_client/proto/hello"
 	"io"
 	"log"
@@ -14,7 +15,7 @@ const (
 )
 
 func main() {
-	conn, err := grpc.Dial(Address, grpc.WithInsecure())
+	conn, err := grpc.NewClient(Address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalln(err)
 	}

@@ -30,7 +30,7 @@ func InitRouter(r *gin.Engine) {
 
 func SignDemo(c *gin.Context) {
 	ts := strconv.FormatInt(common.GetTimeUnix(), 10)
-	res := map[string]interface{}{}
+	res := map[string]any{}
 	params := url.Values{
 		"name":  []string{"a"},
 		"price": []string{"10"},

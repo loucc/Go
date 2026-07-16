@@ -1,15 +1,11 @@
 package member
 
 import (
-	"gopkg.in/go-playground/validator.v8"
-	"reflect"
+	"github.com/go-playground/validator/v10"
 )
 
-func NameValid(
-	v *validator.Validate, topStruct reflect.Value, currentStructOrField reflect.Value,
-	field reflect.Value, fieldType reflect.Type, fieldKind reflect.Kind, param string,
-) bool {
-	if s, ok := field.Interface().(string); ok {
+func NameValid(fl validator.FieldLevel) bool {
+	if s, ok := fl.Field().Interface().(string); ok {
 		if s == "admin" {
 			return false
 		}

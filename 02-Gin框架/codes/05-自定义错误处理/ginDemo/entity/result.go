@@ -2,9 +2,9 @@ package entity
 
 // 定义 Result 结构体
 type Result struct {
-	Code    int         `json:"code"`
-	Message string      `json:"msg"`
-	Data    interface{} `json:"data"`
+	Code    int    `json:"code"`
+	Message string `json:"msg"`
+	Data    any    `json:"data"`
 }
 
 // 定义错误码
@@ -31,7 +31,7 @@ func (res *Result) SetMessage(msg string) *Result {
 }
 
 // 设置返回数据
-func (res *Result) SetData(data interface{}) *Result {
+func (res *Result) SetData(data any) *Result {
 	res.Data = data
 	return res
 }

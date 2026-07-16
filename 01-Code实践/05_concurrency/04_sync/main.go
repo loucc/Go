@@ -68,12 +68,10 @@ func main() {
 	// Mutex 演示
 	c := &SafeCounter{}
 	var wg sync.WaitGroup
-	for i := 0; i < 1000; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range 1000 {
+		wg.Go(func() {
 			c.Inc()
-		}()
+		})
 	}
 	wg.Wait()
 	fmt.Println("Mutex count:", c.count)
@@ -81,18 +79,16 @@ func main() {
 	// atomic:比 Mutex 更快
 	var atomicCounter int64
 	wg = sync.WaitGroup{}
-	for i := 0; i < 1000; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range 1000 {
+		wg.Go(func() {
 			atomic.AddInt64(&atomicCounter, 1)
-		}()
+		})
 	}
 	wg.Wait()
 	fmt.Println("Atomic count:", atomic.LoadInt64(&atomicCounter))
 
 	// Once
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		GetCache().Set(fmt.Sprintf("key%d", i), "v")
 	}
 	fmt.Println("cache len:", len(GetCache().m))

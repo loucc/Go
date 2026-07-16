@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -28,7 +29,9 @@ func main() {
 // MD5 方法
 func MD5(str string) string {
 	s := md5.New()
-	s.Write([]byte(str))
+	if _, err := s.Write([]byte(str)); err != nil {
+		return ""
+	}
 	return hex.EncodeToString(s.Sum(nil))
 }
 
@@ -45,18 +48,19 @@ func getTimeInt() int64 {
 // 生成签名
 func createSign(params map[string]interface{}) string {
 	var key []string
-	var str = ""
 	for k := range params {
 		key = append(key, k)
 	}
 	sort.Strings(key)
-	for i := 0; i < len(key); i++ {
+	var builder strings.Builder
+	for i, k := range key {
 		if i == 0 {
-			str = fmt.Sprintf("%v=%v", key[i], params[key[i]])
+			fmt.Fprintf(&builder, "%v=%v", k, params[k])
 		} else {
-			str = str + fmt.Sprintf("&xl_%v=%v", key[i], params[key[i]])
+			fmt.Fprintf(&builder, "&xl_%v=%v", k, params[k])
 		}
 	}
+	str := builder.String()
 	// 自定义密钥
 	var secret = "123456789"
 

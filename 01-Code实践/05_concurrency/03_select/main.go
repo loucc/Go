@@ -66,7 +66,7 @@ func main() {
 	// ---- 4. 多路合并(fan-in) ----
 	a := gen("A", 3)
 	b := gen("B", 3)
-	for i := 0; i < 6; i++ {
+	for range 6 {
 		select {
 		case v := <-a:
 			fmt.Println("来自 A:", v)
@@ -80,7 +80,7 @@ func gen(tag string, n int) <-chan string {
 	ch := make(chan string)
 	go func() {
 		defer close(ch)
-		for i := 0; i < n; i++ {
+		for i := range n {
 			ch <- fmt.Sprintf("%s-%d", tag, i)
 			time.Sleep(30 * time.Millisecond)
 		}

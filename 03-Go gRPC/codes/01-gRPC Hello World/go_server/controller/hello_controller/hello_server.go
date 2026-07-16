@@ -1,8 +1,8 @@
 package hello_controller
 
 import (
+	"context"
 	"fmt"
-	"golang.org/x/net/context"
 	"hello/go_server/proto/hello"
 )
 
@@ -13,7 +13,7 @@ func (h *HelloController) SayHello(ctx context.Context, in *hello.HelloRequest) 
 }
 
 func (h *HelloController) LotsOfReplies(in *hello.HelloRequest, stream hello.Hello_LotsOfRepliesServer) error {
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		stream.Send(&hello.HelloResponse{Message: fmt.Sprintf("%s %s %d", in.Name, "Reply", i)})
 	}
 	return nil

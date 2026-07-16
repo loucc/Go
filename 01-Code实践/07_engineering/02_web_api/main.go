@@ -115,7 +115,11 @@ func main() {
 		writeJSON(w, http.StatusCreated, u)
 	})
 	mux.HandleFunc("GET /users/{id}", func(w http.ResponseWriter, r *http.Request) {
-		id, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
+		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+		if err != nil {
+			writeError(w, 400, "invalid id")
+			return
+		}
 		u, err := store.Get(id)
 		if err != nil {
 			writeError(w, 404, "not found")
@@ -124,7 +128,11 @@ func main() {
 		writeJSON(w, 200, u)
 	})
 	mux.HandleFunc("PUT /users/{id}", func(w http.ResponseWriter, r *http.Request) {
-		id, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
+		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+		if err != nil {
+			writeError(w, 400, "invalid id")
+			return
+		}
 		var body struct{ Name string }
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			writeError(w, 400, "bad json")
@@ -138,7 +146,11 @@ func main() {
 		writeJSON(w, 200, u)
 	})
 	mux.HandleFunc("DELETE /users/{id}", func(w http.ResponseWriter, r *http.Request) {
-		id, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
+		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+		if err != nil {
+			writeError(w, 400, "invalid id")
+			return
+		}
 		if err := store.Delete(id); err != nil {
 			writeError(w, 404, "not found")
 			return

@@ -19,6 +19,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"sync/atomic"
 	"time"
 )
 
@@ -69,10 +70,9 @@ func authMW(next http.Handler) http.Handler {
 
 // 给每个请求生成一个 ID,写入 context
 func reqIDMW(next http.Handler) http.Handler {
-	var counter int
+	var counter atomic.Int64
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		counter++
-		id := fmt.Sprintf("req-%d", counter)
+		id := fmt.Sprintf("req-%d", counter.Add(1))
 		ctx := context.WithValue(r.Context(), reqIDKey, id)
 		w.Header().Set("X-Request-ID", id)
 		next.ServeHTTP(w, r.WithContext(ctx))

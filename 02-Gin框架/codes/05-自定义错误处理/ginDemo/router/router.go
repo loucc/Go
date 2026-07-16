@@ -9,7 +9,7 @@ import (
 	"ginDemo/validator/member"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"gopkg.in/go-playground/validator.v8"
+	"github.com/go-playground/validator/v10"
 )
 
 func InitRouter(r *gin.Engine) {

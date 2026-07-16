@@ -82,8 +82,8 @@ func main() {
 
 	// ---- 4. 标签 + break/continue(跳出多重循环) ----
 outer:
-	for i := 0; i < 3; i++ {
-		for j := 0; j < 3; j++ {
+	for i := range 3 {
+		for j := range 3 {
 			if i*j > 3 {
 				fmt.Printf("break outer at i=%d j=%d\n", i, j)
 				break outer

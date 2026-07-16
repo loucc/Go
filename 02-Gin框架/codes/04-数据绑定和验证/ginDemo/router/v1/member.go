@@ -21,7 +21,7 @@ func AddMember(c *gin.Context) {
 
 	// 处理业务(下次再分享)
 
-	data := map[string]interface{}{
+	data := map[string]any{
 		"name": mem.Name,
 		"age":  mem.Age,
 	}

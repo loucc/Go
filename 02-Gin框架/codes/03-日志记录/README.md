@@ -74,7 +74,7 @@ func LoggerToFile() gin.HandlerFunc {
 
 ## 运行
 
-**下载源码后，请先执行 `dep ensure` 下载依赖包！**
+**下载源码后，请先执行 `go mod tidy` 下载依赖包！**
 
 ## 效果图
 

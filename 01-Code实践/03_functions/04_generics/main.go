@@ -16,6 +16,7 @@ package main
 import (
 	"cmp"
 	"fmt"
+	"slices"
 )
 
 // 1. 最简单的泛型函数
@@ -38,12 +39,7 @@ func Map[T, U any](s []T, f func(T) U) []U {
 
 // 3. comparable 约束
 func Contains[T comparable](s []T, x T) bool {
-	for _, v := range s {
-		if v == x {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(s, x)
 }
 
 // 4. 自定义约束(接口)

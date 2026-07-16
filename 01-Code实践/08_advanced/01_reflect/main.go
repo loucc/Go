@@ -25,7 +25,7 @@ func main() {
 	c := Config{Host: "localhost", Port: 8080, Debug: true}
 
 	// ---- 1. 获取类型与值 ----
-	t := reflect.TypeOf(c)
+	t := reflect.TypeFor[Config]()
 	v := reflect.ValueOf(c)
 	fmt.Printf("Type: %s Kind: %s\n", t.Name(), t.Kind())
 
@@ -56,7 +56,7 @@ func main() {
 	}
 
 	// ---- 5. 动态创建切片 ----
-	sliceType := reflect.SliceOf(reflect.TypeOf(0))
+	sliceType := reflect.SliceOf(reflect.TypeFor[int]())
 	slice := reflect.MakeSlice(sliceType, 0, 5)
 	for i := 1; i <= 3; i++ {
 		slice = reflect.Append(slice, reflect.ValueOf(i*i))

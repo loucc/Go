@@ -3,13 +3,13 @@ package logger
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"ginDemo/config"
 	"ginDemo/entity"
 	"github.com/gin-gonic/gin"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
+	"log"
 	"os"
 	"path"
 	"strconv"
@@ -42,7 +42,7 @@ func LoggerToFile() gin.HandlerFunc {
 	// 写入文件
 	src, err := os.OpenFile(fileName, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 	if err != nil {
-		fmt.Println("err", err)
+		log.Fatalf("Failed to open log file: %v", err)
 	}
 
 	// 实例化
@@ -100,7 +100,7 @@ func LoggerToFile() gin.HandlerFunc {
 
 		var responseCode string
 		var responseMsg string
-		var responseData interface{}
+		var responseData any
 
 		if responseBody != "" {
 			res := entity.Result{}

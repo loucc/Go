@@ -19,7 +19,7 @@ func main() {
 	fmt.Println("p2 =", p2)
 
 	p3 := Person{Name: "Aaron", Age: 32}
-	fmt.Println("p2 =", p3)
+	fmt.Println("p3 =", p3)
 
 	//匿名结构体
 	p4 := struct {

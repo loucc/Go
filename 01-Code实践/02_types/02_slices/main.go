@@ -27,7 +27,7 @@ func main() {
 
 	// ---- 2. append 的扩容 ----
 	s := []int{}
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		s = append(s, i)
 		fmt.Printf("append %d: len=%d cap=%d\n", i, len(s), cap(s))
 	}

@@ -18,23 +18,19 @@ import (
 
 func main() {
 	var wg sync.WaitGroup
-	for i := 0; i < 3; i++ {
-		wg.Add(1)
-		go func() { // 1.22+ 中每次迭代 i 都是新变量
-			defer wg.Done()
+	for i := range 3 {
+		wg.Go(func() { // 1.22+ 中每次迭代 i 都是新变量
 			fmt.Println("i =", i)
-		}()
+		})
 	}
 	wg.Wait()
 
 	// range 循环也一样
 	nums := []int{10, 20, 30}
 	for _, n := range nums {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			fmt.Println("n =", n)
-		}()
+		})
 	}
 	wg.Wait()
 }

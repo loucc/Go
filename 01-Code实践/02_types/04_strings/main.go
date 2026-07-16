@@ -47,7 +47,7 @@ func main() {
 
 	// ---- 5. strings.Builder(高效拼接) ----
 	var sb strings.Builder
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		sb.WriteString("x")
 	}
 	fmt.Println("Builder:", sb.String())

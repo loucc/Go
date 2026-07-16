@@ -51,13 +51,23 @@ func verifySign(c *gin.Context) (res map[string]string, err error) {
 		req = c.Request.URL.Query()
 		sn = c.Query("sn")
 		debug = c.Query("debug")
-		ts, _ = strconv.ParseInt(c.Query("ts"), 10, 64)
+		var parseErr error
+		ts, parseErr = strconv.ParseInt(c.Query("ts"), 10, 64)
+		if parseErr != nil {
+			err = alarm.New("Invalid timestamp")
+			return
+		}
 	} else if method == "POST" {
 		c.Request.ParseForm()
 		req = c.Request.PostForm
 		sn = c.PostForm("sn")
 		debug = c.PostForm("debug")
-		ts, _ = strconv.ParseInt(c.PostForm("ts"), 10, 64)
+		var parseErr error
+		ts, parseErr = strconv.ParseInt(c.PostForm("ts"), 10, 64)
+		if parseErr != nil {
+			err = alarm.New("Invalid timestamp")
+			return
+		}
 	} else {
 		err = alarm.New("非法请求")
 		return
@@ -71,7 +81,11 @@ func verifySign(c *gin.Context) (res map[string]string, err error) {
 		return
 	}
 
-	exp, _ := strconv.ParseInt(config.API_EXPIRY, 10, 64)
+	exp, err := strconv.ParseInt(config.API_EXPIRY, 10, 64)
+	if err != nil {
+		err = alarm.New("Config error")
+		return
+	}
 
 	// 验证过期时间
 	timestamp := time.Now().Unix()

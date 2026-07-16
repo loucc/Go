@@ -7,6 +7,7 @@ import (
 	"ginDemo/config"
 	"net/url"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -18,27 +19,29 @@ func GetTimeUnix() int64 {
 // MD5 方法
 func MD5(str string) string {
 	s := md5.New()
-	s.Write([]byte(str))
+	if _, err := s.Write([]byte(str)); err != nil {
+		return ""
+	}
 	return hex.EncodeToString(s.Sum(nil))
 }
 
 // 生成签名
 func CreateSign(params url.Values) string {
 	var key []string
-	var str = ""
 	for k := range params {
 		if k != "sn" && k != "ts" && k != "debug" {
 			key = append(key, k)
 		}
 	}
 	sort.Strings(key)
-	for i := 0; i < len(key); i++ {
-		if i == 0 {
-			str = fmt.Sprintf("%v=%v", key[i], params.Get(key[i]))
-		} else {
-			str = str + fmt.Sprintf("&%v=%v", key[i], params.Get(key[i]))
+	var builder strings.Builder
+	for i, k := range key {
+		if i > 0 {
+			builder.WriteString("&")
 		}
+		fmt.Fprintf(&builder, "%v=%v", k, params.Get(k))
 	}
+	str := builder.String()
 
 	// 自定义签名算法
 	sign := MD5(MD5(str) + MD5(config.APP_NAME+config.APP_SECRET))
