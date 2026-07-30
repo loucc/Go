@@ -6,6 +6,9 @@
 //   - Go 没有隐式类型转换,必须显式 T(x)
 //   - byte = uint8;rune = int32(表示 Unicode 码点)
 //
+//   - 官方推荐库 github.com/shopspring/decimal（金融首选），普通电商、支付、记账系统：shopspring/decimal（API 简单，生态成熟）
+//   - github.com/cockroachdb/apd：CockroachDB 自研，高性能大精度 decimal（适合交易所、高频量化）
+//
 // 运行:go run .
 package main
 
@@ -19,7 +22,7 @@ func main() {
 	// ---- 1. 整数类型 ----
 	var i8 int8 = 127             // -128 ~ 127
 	var u8 uint8 = 255            // 0 ~ 255
-	var i64 int64 = math.MaxInt64 // 平台相关的 int 一般是 64 位
+	var i64 int64 = math.MaxInt64 // 平台相关的 int 一般是 64 位，相当于java的Long类型
 	fmt.Printf("int8=%d uint8=%d int64=%d\n", i8, u8, i64)
 
 	// ---- 2. 浮点 ----
