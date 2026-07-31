@@ -7,6 +7,7 @@
 //   - fmt.Errorf 用 %w 包装 error,形成错误链
 //   - errors.Is:判断链上是否包含某个 sentinel
 //   - errors.As:提取链上的具体类型
+//   - errors.Join:聚合多个错误(Go 1.20+)
 //   - panic/recover 仅用于不可恢复的严重错误
 //
 // 运行:go run .
@@ -80,6 +81,36 @@ func main() {
 
 	// ---- 5. panic / recover(仅用于不可恢复错误) ----
 	safeCall()
+
+	fmt.Println("\n=== errors.Join(Go 1.20+) ===")
+	demoJoin()
+}
+
+// ---- errors.Join:多错误聚合 ----
+//
+// 典型场景:并发任务中每个 worker 返回一个 error,
+// 需要聚合后一起返回。Join 会跳过 nil,全部 nil 则返回 nil。
+func demoJoin() {
+	errs := []error{
+		errors.New("连接超时"),
+		nil, // Join 会跳过 nil
+		errors.New("解析失败"),
+		fmt.Errorf("字段 %q 无效: %w", "email", ErrNotFound),
+	}
+
+	combined := errors.Join(errs...)
+	if combined != nil {
+		fmt.Printf("聚合错误:\n%v\n", combined)
+	}
+
+	// Join 后的错误支持 errors.Is / errors.As 穿透
+	if errors.Is(combined, ErrNotFound) {
+		fmt.Println("→ 聚合错误中包含 ErrNotFound")
+	}
+
+	// 全部 nil 时 Join 返回 nil
+	allNil := errors.Join(nil, nil, nil)
+	fmt.Printf("全部 nil: %v\n", allNil)
 }
 
 func safeCall() {

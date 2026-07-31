@@ -12,12 +12,15 @@ func Reverse(s string) string {
 	return string(rs)
 }
 
-// TitleWords 将 "hello world" 转为 "Hello World"(简单示例)。
+// TitleWords 将 "hello world" 转为 "Hello World"。
+// 按 rune 处理,支持 Unicode 字符。
 func TitleWords(s string) string {
 	words := strings.Fields(s)
 	for i, w := range words {
-		if len(w) > 0 {
-			words[i] = strings.ToUpper(w[:1]) + w[1:]
+		runes := []rune(w)
+		if len(runes) > 0 {
+			runes[0] = []rune(strings.ToUpper(string(runes[0])))[0]
+			words[i] = string(runes)
 		}
 	}
 	return strings.Join(words, " ")

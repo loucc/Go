@@ -10,6 +10,7 @@
 //   - r.PathValue("id") 提取路径参数
 //   - 优雅关闭 http.Server.Shutdown
 //   - 中间件模式:http.Handler 是可组合的
+//   - 安全实践:超时配置、请求体大小限制
 //
 // 运行:go run .
 // 测试:
@@ -59,10 +60,15 @@ func main() {
 	// 用中间件包一层
 	handler := loggingMiddleware(logger, mux)
 
+	// 安全实践:配置超时,防止 Slowloris 等慢速攻击
 	srv := &http.Server{
 		Addr:              ":8080",
 		Handler:           handler,
-		ReadHeaderTimeout: 3 * time.Second,
+		ReadHeaderTimeout: 3 * time.Second,  // 读取请求头的超时
+		ReadTimeout:       10 * time.Second, // 读取整个请求体的超时
+		WriteTimeout:      15 * time.Second, // 写入响应的超时
+		IdleTimeout:       60 * time.Second, // keep-alive 连接空闲超时
+		MaxHeaderBytes:    1 << 20,          // 请求头最大 1 MB
 	}
 
 	// 启动
@@ -109,9 +115,12 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func createUser(w http.ResponseWriter, r *http.Request) {
+	// 安全实践:限制请求体大小,防止恶意大文件攻击
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1 MB
+
 	var u User
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-		http.Error(w, "bad json", http.StatusBadRequest)
+		http.Error(w, "bad json or body too large", http.StatusBadRequest)
 		return
 	}
 	mu.Lock()
@@ -120,8 +129,9 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 	users[u.ID] = u
 	mu.Unlock()
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	writeJSON(w, u)
+	_ = json.NewEncoder(w).Encode(u)
 }
 
 func writeJSON(w http.ResponseWriter, v any) {

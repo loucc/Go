@@ -33,6 +33,16 @@ func main() {
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		value := v.Field(i)
+
+		// 未导出字段不能调用 Interface(),否则会 panic
+		if !field.IsExported() {
+			fmt.Printf("  %s (%s) = <unexported>  json=%q validate=%q\n",
+				field.Name, field.Type,
+				field.Tag.Get("json"), field.Tag.Get("validate"),
+			)
+			continue
+		}
+
 		fmt.Printf("  %s (%s) = %v  json=%q validate=%q\n",
 			field.Name,
 			field.Type,

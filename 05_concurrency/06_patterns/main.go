@@ -1,9 +1,11 @@
-// Package main 演示常见并发模式:worker pool、pipeline、fan-in/fan-out。
+// Package main 演示常见并发模式。
 //
 // 学习要点:
 //   - Worker Pool:固定 goroutine 数处理任务队列(限流)
 //   - Pipeline:多阶段流水线,每阶段用 channel 连接
 //   - Fan-out / Fan-in:分发到多个 worker,再合并结果
+//   - ErrGroup:并发任务组,任一失败则返回错误(生产用 x/sync/errgroup)
+//   - Singleflight:相同 key 的并发请求合并为一次执行(防缓存击穿)
 //   - 关闭 channel 的原则:由发送方关闭(明确唯一)
 //
 // 运行:go run .
@@ -24,6 +26,12 @@ func main() {
 
 	fmt.Println("\n=== Fan-out / Fan-in ===")
 	fanOutFanIn()
+
+	fmt.Println("\n=== ErrGroup(手写版,生产用 golang.org/x/sync/errgroup) ===")
+	errGroupDemo()
+
+	fmt.Println("\n=== Singleflight(请求合并) ===")
+	singleflightDemo()
 }
 
 // ---------- Worker Pool ----------
@@ -139,4 +147,126 @@ func fanIn(chs ...<-chan string) <-chan string {
 		close(out)
 	}()
 	return out
+}
+
+// ---------- ErrGroup(手写简化版) ----------
+//
+// 生产环境请使用 golang.org/x/sync/errgroup,它提供:
+//   - SetLimit(n) 限制并发数
+//   - 上下文取消:任一 goroutine 返回 error 时自动取消其余
+//   - Go 1.25+ 可用 sync.WaitGroup.Go 简化写法
+//
+// 这里用标准库手写一个简化版,帮助理解原理。
+type errGroup struct {
+	wg      sync.WaitGroup
+	errOnce sync.Once
+	err     error
+}
+
+func (g *errGroup) Go(f func() error) {
+	g.wg.Add(1)
+	go func() {
+		defer g.wg.Done()
+		if e := f(); e != nil {
+			g.errOnce.Do(func() { g.err = e })
+		}
+	}()
+}
+
+func (g *errGroup) Wait() error {
+	g.wg.Wait()
+	return g.err
+}
+
+func errGroupDemo() {
+	var g errGroup
+
+	for i := 1; i <= 5; i++ {
+		id := i
+		g.Go(func() error {
+			time.Sleep(time.Duration(id*20) * time.Millisecond)
+			fmt.Printf("  task %d done\n", id)
+			return nil
+		})
+	}
+
+	// 模拟一个失败的任务
+	g.Go(func() error {
+		time.Sleep(30 * time.Millisecond)
+		fmt.Println("  task-fail: simulating error")
+		return fmt.Errorf("task-fail: something went wrong")
+	})
+
+	if err := g.Wait(); err != nil {
+		fmt.Printf("  errgroup 返回首个错误: %v\n", err)
+	}
+}
+
+// ---------- Singleflight(请求合并) ----------
+//
+// 场景:缓存击穿 —— 同一个 key 同时有大量并发请求,
+// 如果缓存 miss,它们会同时打到下游(如数据库)。
+// Singleflight 保证同一 key 的并发请求中只有一个真正执行,
+// 其余等待结果共享。
+//
+// 生产环境请使用 golang.org/x/sync/singleflight。
+type singleflight struct {
+	mu sync.Mutex
+	m  map[string]*call
+}
+
+type call struct {
+	wg  sync.WaitGroup
+	val string
+	err error
+}
+
+func (sf *singleflight) Do(key string, fn func() (string, error)) (string, error) {
+	sf.mu.Lock()
+	if sf.m == nil {
+		sf.m = make(map[string]*call)
+	}
+	if c, ok := sf.m[key]; ok {
+		sf.mu.Unlock()
+		c.wg.Wait() // 已有相同 key 的请求在执行,等待它
+		return c.val, c.err
+	}
+
+	c := &call{}
+	c.wg.Add(1)
+	sf.m[key] = c
+	sf.mu.Unlock()
+
+	c.val, c.err = fn()
+	c.wg.Done()
+
+	sf.mu.Lock()
+	delete(sf.m, key) // 完成后删除,下次请求重新执行
+	sf.mu.Unlock()
+
+	return c.val, c.err
+}
+
+func singleflightDemo() {
+	var sf singleflight
+
+	// 模拟 10 个并发请求同一个 key,但只有 1 个真正执行 fetch
+	var wg sync.WaitGroup
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			val, err := sf.Do("user:1", func() (string, error) {
+				fmt.Println("  [实际执行] fetch user:1 from database (只会出现一次)")
+				time.Sleep(50 * time.Millisecond)
+				return "Alice", nil
+			})
+			if err != nil {
+				fmt.Printf("  worker %d: error %v\n", id, err)
+				return
+			}
+			fmt.Printf("  worker %d: got %q\n", id, val)
+		}(i)
+	}
+	wg.Wait()
 }
